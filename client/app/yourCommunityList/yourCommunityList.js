@@ -1,12 +1,20 @@
 angular.module('interim.yourCommunityList', ["firebase"])
 
-.controller('YourCommunityListController', function ($scope, $firebaseObject, $rootScope) {
+.controller('YourCommunityListController', function ($scope, $rootScope, $firebaseObject) {
   // Initially identifying user and displaying their current groups & communities
 
-  var ref = new Firebase("https://interim.firebaseio.com/CommunityDB/");
-  var commObj = $firebaseObject(ref);
-  $scope.userInfo = $rootScope.userInfo;
-  console.log($scope.userInfo.name);
+  var ref = new Firebase("https://interim.firebaseio.com/");
+
+  // Adding Object.keys() to $rootScope, otherwise not accessible within Angular Scope
+  // http://stackoverflow.com/questions/25299436/unable-to-call-object-keys-in-angularjs
+  $scope.Utils = {
+     keys : Object.keys
+  }
+
+  $scope.userInfo = $rootScope.userInfo;  //Need $apply() or init?
+
+  //console.log("User info from $rootScope: ", $rootScope.userInfo, $rootScope.userInfo.name);
+  console.log("User info:", $scope.userInfo, $scope.userInfo.name);
 
   // For each of these calls, userId needs to be in the form
   // userName-authSource   // Yoda-github
@@ -14,10 +22,28 @@ angular.module('interim.yourCommunityList', ["firebase"])
 
     var userId = '' + $scope.userInfo.name + "-" + $scope.userInfo.auth.provider;
 
-    $scope.communities = $firebaseArray(ref.child('UsersDB').child(userId).child('usersCommunities'));
-    console.log("Retrieved ", $scope.userInfo.name, "'s communities: ", communities);
+    var commObj = $firebaseObject(ref.child('UsersDB').child(userId).child('usersCommunities'));
+    //var commObj = $firebaseObject(ref.child('UsersDB').child(userId)); //Contains communities & groups
+    //$scope.communities = $firebaseArray(ref.child('UsersDB').child(userId).child('usersCommunities'));
+    console.log("commObj: ", commObj);
+
+    //var communities = $scope.Utils.keys(commObj);
+    // for (var key in commObj){
+    //   if(commObj[key]){
+    //     communities.push(key);
+    //   }
+    // }
+    $scope.communities = commObj;
+
+
+    //console.log("Retrieved ", $scope.userInfo.name, "'s community object: ", $scope.communities);
+    //var $scope.commKeys = $rootScope.Utils.keys(commObj);
+    console.log($scope.userInfo.name, "'s communities ", $scope.communities);
+
 
   };
+
+  $scope.usersCommunities();
 
   $scope.usersGroups = function(){
     //Check all Group children for all communities
@@ -27,28 +53,15 @@ angular.module('interim.yourCommunityList', ["firebase"])
 
 
   $scope.displayUsersCommunities= function(){
-    //Use $rootscope array of communties
+    //Use $rootScope array of communties
 
   };
   $scope.displayUsersGroups= function(){
-    //Use $rootscope array of communties
+    //Use $rootScope array of communties
   };
 
 
   // Seach and display results
-  $scope.searchCommunities = function(searchTerm) {
-  };
-  $scope.searchGroups = function(searchTerm) {
-  };
-  $scope.displayResults = function(searchTerm) {
-  };
-
-  // Selecting groups or communities after search results to request permission
-
-  $scope.selectCommunities = function(){
-  };
-  $scope.selectGroups = function(){
-  };
 
   $scope.sendSearch = function(community) {
     console.log("entered sendSearch")
@@ -70,4 +83,10 @@ angular.module('interim.yourCommunityList', ["firebase"])
       });
     });
   }
+
+
+  $scope.displayResults = function(searchTerm) {
+  };
+
+
 });
